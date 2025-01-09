@@ -1,10 +1,17 @@
+"""
+This script generates fake user information from a specified API, 
+such as name, address, email, and more. The data can be saved in 
+text files and QR codes can be generated. 
+"""
+
 import os
 import random
-import requests
-from bs4 import BeautifulSoup
 from datetime import datetime
 import configparser
 import urllib.parse
+import requests
+from bs4 import BeautifulSoup
+import qrcode
 
 # List of common user agents
 USER_AGENTS = [
@@ -29,16 +36,15 @@ def fetch_html_with_random_ua(url):
     headers = {
         'User-Agent': random.choice(USER_AGENTS)
     }
-
-    print(f"Fetching URL: {url}")
-    
+    print(f"Fetching URL: {url}")    
     try:
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-            return response.text
-        else:
-            print(f"Error: Failed to retrieve page (status code: {response.status_code})")
+        response = requests.get(url, headers=headers, timeout=10)
+        if not response.status_code == 200:
             return None
+        return response.text
+        # else:
+        #     print(f"Error: Failed to retrieve page (status code: {response.status_code})")
+        #     return None
     except requests.RequestException as e:
         print(f"Error: An exception occurred while fetching the page: {e}")
         return None
@@ -66,7 +72,6 @@ def construct_url(config):
     gen = config.get('advanced_options', 'gen', fallback='0')
     age_min = config.get('advanced_options', 'age_min', fallback='18')
     age_max = config.get('advanced_options', 'age_max', fallback='99')
-    
     url_base = "https://www.fakenamegenerator.com/advanced.php?t=country"
     params = {
         'n[]': name_set,
@@ -84,14 +89,8 @@ def construct_email_url(email):
     username = email.split('@')[0]
     return f"https://www.fakemailgenerator.com/#/{domain}/{username}/"
 
-def generate_qr_code(data, output_dir='output', filename='qr_code.png', config=None):
+def generate_qr_code(data, output_dir='output', config=None):
     """Generate a QR code from the provided data and save it as an image."""
-    try:
-        import qrcode
-    except ImportError:
-        print("Error: 'qrcode' library is not installed. Please install it with: pip install qrcode[pil]")
-        return None
-
     # Check if QR code generation is enabled in the config
     if config and config.get('qr_options', 'generate_qr', fallback='Off') == 'On':
         # Create a QR code instance
@@ -115,16 +114,15 @@ def generate_qr_code(data, output_dir='output', filename='qr_code.png', config=N
         timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
         img_path = os.path.join(output_dir, f'identity_info_{timestamp}.png')  # Save as PNG by default
         img.save(img_path)
-
         print(f"QR code saved at: {img_path}")
         return img_path
-    else:
-        print("QR code generation is disabled.")
-        return None
+    
+    print("QR code generation is disabled.")
+    return None
 
 def extract_identity_info(html_content, output_dir='output', config=None):
     """Extract the identity information and generate a QR code for the email URL if enabled."""
-    
+
     # Ensure the output directory exists
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -183,7 +181,7 @@ def extract_identity_info(html_content, output_dir='output', config=None):
     timestamp = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     output_file = os.path.join(output_dir, f'identity_info_{timestamp}.txt')
     
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding='utf-8') as f:
         for category, items in categorized_data.items():
             f.write(f"{category}:\n")
             for key, value in items.items():
@@ -193,10 +191,14 @@ def extract_identity_info(html_content, output_dir='output', config=None):
     print(f"Identity information saved to {output_file}")
 
     # Generate a QR code with the entire extracted information
-    full_data = "\n".join([f"{category}: {dict(items)}" for category, items in categorized_data.items()])
+    full_data = "\n".join(
+        [f"{category}: {dict(items)}" for category, items in categorized_data.items()]
+        )
     generate_qr_code(full_data, output_dir=output_dir, config=config)
 
 def main():
+    """Main function to fetch the identity information and save it to a file."""
+
     # Load the config file
     config = load_config()
 
