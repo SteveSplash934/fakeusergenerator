@@ -1,5 +1,7 @@
 # Fake User Generator
 
+![Logo](statics/NCtmcGFz1BWaPBRdbhEn60KPcdNqhQ_rO5K6s7TZj8o.webp)
+
 This project is a Python-based fake user identity generator that fetches data from a website and generates fake user information, including basic details (name, address, SSN, etc.), email, phone, financial, personal, and work-related information. It also supports generating a QR code that contains all the extracted data.
 
 ## Features
@@ -170,6 +172,14 @@ The script will print an error message if it fails to fetch the data.
 - **Integrate with Telegram bot**: Add support for sending generated user info via a Telegram bot.
 - **Integrate with Discord bot**: Add support for sending generated user info via a Discord bot.
 - **Make it a free API**: Expose an API for generating fake user data programmatically.
+
+## Credits
+
+This project makes use of the following website for generating fake user data:
+
+- [Fake Name Generator](https://www.fakenamegenerator.com)
+
+Special thanks to the creators of this tool for providing such a comprehensive and useful service.
 
 ## License
 
