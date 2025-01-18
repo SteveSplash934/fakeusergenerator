@@ -162,6 +162,11 @@ def extract_identity_info(html_content, output_dir='output', config=None):
             if key.lower() == 'ssn':
                 value = value.split('-')[0] + '-' + value.split('-')[1] + '-' + generate_random_ssn_last_digits()
             
+            # If the key is 'email address', construct the fakemail URL and append it
+            if key.lower() == 'email address' and value:
+                email_url = construct_email_url(value)
+                value = f"{value} (INBOX: {email_url})"
+            
             # Categorize based on the key
             if key.lower() in ['ssn', 'mother\'s maiden name', 'birthday', 'age', 'tropical zodiac', 'geo coordinates']:
                 categorized_data['Basic Info'][key] = value

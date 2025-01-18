@@ -1,0 +1,2 @@
+python fakeusergenerator.py
+pause
